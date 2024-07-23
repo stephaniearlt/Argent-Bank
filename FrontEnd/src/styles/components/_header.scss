@@ -1,0 +1,38 @@
+.main-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: $padding-main-nav;
+
+  a {
+    font-weight: bold;
+    color: $primary-color;
+
+    &.router-link-exact-active {
+      color: $highlight-color;
+    }
+  }
+
+  &-item {
+    text-decoration: none;
+    margin-right: $margin-right-item;
+
+    &:hover {
+      text-decoration: underline;
+    }
+
+    i {
+      margin-right: 0.5rem;
+    }
+  }
+
+  &-logo {
+    display: flex;
+    align-items: center;
+
+    &-image {
+      max-width: 100%;
+      width: $width-logo;
+    }
+  }
+}

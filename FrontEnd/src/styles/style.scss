@@ -1,0 +1,16 @@
+// Import des styles de base
+@import './base/reset';
+@import './base/typography';
+@import './base/variables';
+
+// Import des styles spécifiques des pages
+@import './pages/home';
+@import './pages/login';
+@import './pages/profile';
+
+// Import des styles spécifiques des composants
+@import './components/header';
+@import './components/footer';
+@import './components/feature-item';
+@import './components/features';
+@import './components/hero';
