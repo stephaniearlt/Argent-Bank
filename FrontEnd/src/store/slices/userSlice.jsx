@@ -1,88 +1,121 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import axios from "axios";
+import { login, register, getProfile, updateProfile } from "../../api";
+import { saveToken, removeToken } from "../../utils/tokenManager";
 
-// Requête asynchrone vers l'API pour la connexion de l'utilisateur
+// Connexion de l'utilisateur
 export const loginUser = createAsyncThunk(
   "user/loginUser",
-  async ({ email, password }, { rejectWithValue }) => {
+  async ({ email, password, rememberMe }, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:3001/api/v1/user/login",
-        { email, password }
-      );
-      console.log("Response from API:", response.data);
-      return response.data.body;
+      const response = await login({ email, password });
+      const token = response.body.token;
+
+      saveToken(token, rememberMe);
+      return response.body;
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "Unknown error");
     }
   }
 );
 
-// Requête asynchrone pour obtenir les détails de l'utilisateur
+// Création d'un compte utilisateur
+export const registerUser = createAsyncThunk(
+  "user/registerUser",
+  async (body, { rejectWithValue }) => {
+    try {
+      const response = await register(body);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Unknown error");
+    }
+  }
+);
+
+// Détails sur l'utilisateur
 export const profileUser = createAsyncThunk(
   "user/profileUser",
   async (token, { rejectWithValue }) => {
     try {
-      const response = await axios.post(
-        "http://localhost:3001/api/v1/user/profile",
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      return response.data.body;
+      const response = await getProfile(token);
+      return response.body; 
     } catch (error) {
-      return rejectWithValue(error.response.data);
+      return rejectWithValue(error.response?.data || "Unknown error");
     }
   }
 );
 
-// Défini et gère l'état de l'utilisateur
+// Mise à jour de l'utilisateur
+export const updateUser = createAsyncThunk(
+  "user/updateUser",
+  async ({ userName, token }, { rejectWithValue }) => {
+    try {
+      const response = await updateProfile({ userName, token });
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Unknown error");
+    }
+  }
+);
+
+// Slice pour gérer l'état utilisateur
 const userSlice = createSlice({
   name: "user",
   initialState: {
     user: null,
+    token: null,
     status: "idle",
     error: null,
   },
   reducers: {
-    logoutUser: (state) => {
+    logout: (state) => {
       state.user = null;
-      state.status = "idle";
-      state.error = null;
+      state.token = null;
+      removeToken(); // Supprime le token du stockage
     },
   },
   extraReducers: (builder) => {
     builder
-      // L'action asynchrone a été déclenchée et est en cours.
-      .addCase(loginUser.pending, (state) => {
-        state.status = "loading";
-      })
-
-      // L'action asynchrone s'est terminée avec succès.
       .addCase(loginUser.fulfilled, (state, action) => {
+        state.user = action.payload.user;
+        state.token = action.payload.token;
         state.status = "succeeded";
-        state.user = { token: action.payload.token };
+        state.error = null;
       })
-      // L'action asynchrone a échoué.
       .addCase(loginUser.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload;
       })
-
-      // L'action pour ajouter les détails du profil à l'état s'est terminée avec succès.
+      .addCase(registerUser.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.error = null;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
       .addCase(profileUser.fulfilled, (state, action) => {
         state.user = { ...state.user, ...action.payload };
       })
-      // L'action pour ajouter les détails du profil à l'état a échoué.
-      .addCase(profileUser.rejected, (state, action) => {
+      .addCase(updateUser.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.user = { ...state.user, ...action.payload };
+        state.error = null;
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.status = "failed";
         state.error = action.payload;
       });
   },
 });
 
-export const { logoutUser } = userSlice.actions;
+export const { logout } = userSlice.actions;
 
 export default userSlice.reducer;
