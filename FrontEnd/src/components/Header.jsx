@@ -2,15 +2,17 @@ import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../store/slices/userSlice";
-import { removeToken } from "../utils/tokenManager"; 
+import { removeToken } from "../utils/tokenManager";
 import { selectUser } from "../selectors/userSelectors";
-import logo from "../assets/argentBankLogo.png";
+import logo from "../assets/argentBankLogo.webp";
 
 const Header = () => {
+  // Hooks pour accéder aux fonctions et store de Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const user = useSelector(selectUser);
 
+  // Fonction pour gérer la déconnexion de l'utilisateur
   const handleLogout = () => {
     dispatch(logout());
     removeToken();

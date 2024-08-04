@@ -15,6 +15,7 @@ import Register from "./pages/Register";
 
 import "./styles/style.scss";
 
+// Fonction pour définir les routes de l'application
 function App() {
   return (
     <Router>

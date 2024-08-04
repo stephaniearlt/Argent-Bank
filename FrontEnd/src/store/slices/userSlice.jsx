@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { login, register, getProfile, updateProfile } from "../../api";
-import { saveToken, removeToken } from "../../utils/tokenManager";
+import { saveToken, getToken } from "../../utils/tokenManager";
 
 // Connexion de l'utilisateur
 export const loginUser = createAsyncThunk(
@@ -9,7 +9,7 @@ export const loginUser = createAsyncThunk(
     try {
       const response = await login({ email, password });
       const token = response.body.token;
-
+      // Utilise rememberMe pour décider du stockage
       saveToken(token, rememberMe);
       return response.body;
     } catch (error) {
@@ -34,10 +34,11 @@ export const registerUser = createAsyncThunk(
 // Détails sur l'utilisateur
 export const profileUser = createAsyncThunk(
   "user/profileUser",
-  async (token, { rejectWithValue }) => {
+  async (_, { rejectWithValue }) => {
     try {
+      const token = getToken();
       const response = await getProfile(token);
-      return response.body; 
+      return response.body;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Unknown error");
     }
@@ -57,23 +58,24 @@ export const updateUser = createAsyncThunk(
   }
 );
 
-// Slice pour gérer l'état utilisateur
+// Création du slice pour gérer l'état utilisateur
 const userSlice = createSlice({
   name: "user",
   initialState: {
     user: null,
-    token: null,
+    token: getToken(),
     status: "idle",
     error: null,
   },
   reducers: {
+    // Réducteur pour gérer la déconnexion de l'utilisateur
     logout: (state) => {
       state.user = null;
       state.token = null;
-      removeToken(); // Supprime le token du stockage
     },
   },
   extraReducers: (builder) => {
+    // Gestion des actions asynchrones avec extraReducers
     builder
       .addCase(loginUser.fulfilled, (state, action) => {
         state.user = action.payload.user;
@@ -100,6 +102,10 @@ const userSlice = createSlice({
       })
       .addCase(profileUser.fulfilled, (state, action) => {
         state.user = { ...state.user, ...action.payload };
+      })
+      .addCase(profileUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
       })
       .addCase(updateUser.pending, (state) => {
         state.status = "loading";

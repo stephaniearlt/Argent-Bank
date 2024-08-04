@@ -3,25 +3,30 @@ import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../store/slices/userSlice";
 import { selectUserStatus, selectUserError } from "../selectors/userSelectors";
+import PasswordInput from "../utils/PasswordInput";
 
 const Register = () => {
+  // États locaux pour gérer les champs du formulaire
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [userName, setUserName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
+  // Hooks pour accéder aux fonctions et store de Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const userStatus = useSelector(selectUserStatus);
   const userError = useSelector(selectUserError);
 
+  // Fonction appelée lors de la soumission du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
+    // Déclenche l'action pour registrer les données du formulaire
     dispatch(registerUser({ lastName, firstName, userName, email, password }));
   };
 
+  // Vérifie le statut de l'utilisateur et redirige si l'inscription est réussie
   useEffect(() => {
     if (userStatus === "succeeded") {
       navigate("/login");
@@ -38,48 +43,53 @@ const Register = () => {
             <label htmlFor="lastname">Lastname</label>
             <input
               type="text"
-              required
               id="lastname"
               value={lastName}
               onChange={(e) => setLastName(e.target.value)}
+              required
+              ria-label="Lastname"
+              placeholder="Angel"
             />
           </div>
           <div className="input-wrapper">
             <label htmlFor="firstname">Firstname</label>
             <input
               type="text"
-              required
               id="firstname"
               value={firstName}
               onChange={(e) => setFirstName(e.target.value)}
+              required
+              aria-label="Firstname"
+              placeholder="Cooper"
             />
           </div>
           <div className="input-wrapper">
             <label htmlFor="username">Username</label>
             <input
               type="text"
-              required
               id="username"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
+              required
+              aria-label="Username"
+              placeholder="Angel"
             />
           </div>
           <div className="input-wrapper">
             <label htmlFor="email">Email</label>
             <input
               type="email"
-              required
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
+              aria-label="Email address"
+              placeholder="example@gmail.com"
             />
           </div>
           <div className="input-wrapper">
             <label htmlFor="password">Password</label>
-            <input
-              type="password"
-              id="password"
-              required
+            <PasswordInput
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
@@ -88,13 +98,22 @@ const Register = () => {
             className="sign-in-button"
             type="submit"
             disabled={userStatus === "loading"}
+            aria-busy={userStatus === "loading"}
           >
-            Sign In
+            Register
           </button>
-          <Link to="/login">J'ai déjà un compte</Link>
-          {userStatus === "loading" && <p>Loading...</p>}
+          <Link to="/login" aria-label="Login page">
+            Account
+          </Link>
+          {userStatus === "loading" && (
+            <p role="status" aria-live="polite">
+              Loading...
+            </p>
+          )}
           {userStatus === "failed" && userError && (
-            <p className="error">{userError.message || "An error occurred"}</p>
+            <p className="error" role="alert">
+              {userError.message || "An error occurred"}
+            </p>
           )}
         </form>
       </section>

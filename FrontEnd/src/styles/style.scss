@@ -4,7 +4,6 @@
 @import './base/variables';
 
 // Import des styles spécifiques des pages
-@import './pages/home';
 @import './pages/login';
 @import './pages/profile';
 
@@ -14,3 +13,4 @@
 @import './components/feature-item';
 @import './components/features';
 @import './components/hero';
+@import './components/password-input';

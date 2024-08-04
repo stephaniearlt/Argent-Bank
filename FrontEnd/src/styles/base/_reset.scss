@@ -17,6 +17,12 @@ body {
   flex: 1;
 }
 
+.bg-dark {
+  background-color: #12002b;
+  padding-top: 3rem;
+}
+
+/* Style global pour les lecteurs d'écran */
 .sr-only {
   border: 0 !important;
   clip: rect(1px, 1px, 1px, 1px) !important;
@@ -31,7 +37,9 @@ body {
   white-space: nowrap !important;
 }
 
-.bg-dark {
-  background-color: #12002b;
-  padding-top: 3rem;
+/* Style global pour tous les placeholders */
+input::placeholder,
+textarea::placeholder {
+  font-size: 0.875rem; 
+  color: #888; 
 }

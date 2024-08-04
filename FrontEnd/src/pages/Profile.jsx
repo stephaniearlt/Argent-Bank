@@ -3,33 +3,54 @@ import { useDispatch, useSelector } from "react-redux";
 import { profileUser, updateUser } from "../store/slices/userSlice";
 import { selectUser, selectUserToken } from "../selectors/userSelectors";
 import EditName from "../components/EditName";
+import Account from "../components/Account";
+import data from "../datas/data.json";
 
 const Profile = () => {
+  // États locaux pour gérer le mode édition et les comptes utilisateur
   const [isEditing, setIsEditing] = useState(false);
-  const user = useSelector(selectUser);
-  const dispatch = useDispatch();
-  const token = useSelector(selectUserToken);
+  const [accounts, setAccounts] = useState([]);
 
+  // Hooks pour accéder aux fonctions et store de Redux
+  const user = useSelector(selectUser);
+  const token = useSelector(selectUserToken);
+  const dispatch = useDispatch();
+
+  // Vérifie si le token n'est pas présent
   useEffect(() => {
-    console.log('Profile component rendered');
-    if (token) {
-      dispatch(profileUser(token)).then((response) => {
-        console.log("Profile loaded:", response.payload);
-      });
+    if (!token) {
+      window.location.href = "/login";
+      return;
     }
+
+    // Déclenche l'action pour récupérer les données utilisateur
+    dispatch(profileUser(token)).then((response) => {
+      if (response.payload) {
+        // Charge les données uniquement si l'utilisateur est authentifié
+        setAccounts(data);
+      } else {
+        // Redirige vers la page de connexion si la réponse est invalide
+        window.location.href = "/login";
+      }
+    });
   }, [token, dispatch]);
 
+  // Fonction pour activer le mode édition
   const handleEditClick = () => {
     setIsEditing(true);
   };
 
+  // Fonction pour annuler le mode édition
   const handleCancel = () => {
     setIsEditing(false);
   };
 
+  // Fonction pour sauvegarder les modifications de l'utilisateur
   const handleSave = (newUserName) => {
     dispatch(updateUser({ userName: newUserName, token }))
-      .then(() => dispatch(profileUser(token))) // Recharge les données utilisateur après mise à jour
+      // Recharge les données utilisateur après mise à jour
+      .then(() => dispatch(profileUser(token)))
+      // Désactive le mode édition
       .finally(() => setIsEditing(false));
   };
 
@@ -58,36 +79,14 @@ const Profile = () => {
         )}
       </div>
       <h2 className="sr-only">Accounts</h2>
-      <section className="account">
-        <div className="account-content-wrapper">
-          <h3 className="account-title">Argent Bank Checking (x8349)</h3>
-          <p className="account-amount">$2,082.79</p>
-          <p className="account-amount-description">Available Balance</p>
-        </div>
-        <div className="account-content-wrapper cta">
-          <button className="transaction-button">View transactions</button>
-        </div>
-      </section>
-      <section className="account">
-        <div className="account-content-wrapper">
-          <h3 className="account-title">Argent Bank Savings (x6712)</h3>
-          <p className="account-amount">$10,928.42</p>
-          <p className="account-amount-description">Available Balance</p>
-        </div>
-        <div className="account-content-wrapper cta">
-          <button className="transaction-button">View transactions</button>
-        </div>
-      </section>
-      <section className="account">
-        <div className="account-content-wrapper">
-          <h3 className="account-title">Argent Bank Credit Card (x8349)</h3>
-          <p className="account-amount">$184.30</p>
-          <p className="account-amount-description">Current Balance</p>
-        </div>
-        <div className="account-content-wrapper cta">
-          <button className="transaction-button">View transactions</button>
-        </div>
-      </section>
+      {accounts.map((account, index) => (
+        <Account
+          key={`account-${index}`}
+          title={account.title}
+          amount={account.amount}
+          description={account.description}
+        />
+      ))}
     </main>
   );
 };

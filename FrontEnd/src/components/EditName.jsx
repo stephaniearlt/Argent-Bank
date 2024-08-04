@@ -1,10 +1,13 @@
 import React, { useState } from "react";
 
 const EditName = ({ user, onCancel, onSave }) => {
+  // État local pour gérer la modification du nom d'utilisateur
   const [newUserName, setNewUserName] = useState(user.userName || "");
 
+  // Fonction pour gérer le clic sur le bouton de sauvegarde
   const handleSaveClick = (e) => {
     e.preventDefault();
+    // Vérifie que le nom n'est pas vide ou constitué uniquement d'espaces
     if (newUserName.trim()) {
       onSave(newUserName);
     }
