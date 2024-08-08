@@ -1,3 +1,4 @@
+// src/components/Features.jsx
 import React from 'react';
 import FeatureItem from './FeatureItem';
 import chatIcon from '../assets/icon-chat.webp';

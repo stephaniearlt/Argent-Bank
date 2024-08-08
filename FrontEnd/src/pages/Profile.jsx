@@ -4,6 +4,7 @@ import { profileUser, updateUser } from "../store/slices/userSlice";
 import { selectUser, selectUserToken } from "../selectors/userSelectors";
 import EditName from "../components/EditName";
 import Account from "../components/Account";
+import Button from "../components/Button";
 import data from "../datas/data.json";
 
 const Profile = () => {
@@ -72,9 +73,7 @@ const Profile = () => {
                 "User!"
               )}
             </h1>
-            <button className="edit-button" onClick={handleEditClick}>
-              Edit Name
-            </button>
+            <Button className="edit-button" onClick={handleEditClick}>Edit Name</Button>
           </>
         )}
       </div>

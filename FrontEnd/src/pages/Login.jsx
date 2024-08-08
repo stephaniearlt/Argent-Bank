@@ -9,6 +9,7 @@ import {
 } from "../selectors/userSelectors";
 import { saveToken } from "../utils/tokenManager";
 import PasswordInput from "../utils/PasswordInput";
+import Button from "../components/Button";
 
 const Login = () => {
   // États locaux pour gérer les champs du formulaire
@@ -59,7 +60,7 @@ const Login = () => {
     }
   };
 
-  return (
+ return (
     <main className="main bg-dark">
       <section className="sign-in-content">
         <i className="fa fa-user-circle sign-in-icon" aria-hidden="true"></i>
@@ -79,10 +80,7 @@ const Login = () => {
           </div>
           <div className="input-wrapper">
             <label htmlFor="password">Password</label>
-            <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} />
           </div>
           <div className="input-remember">
             <input
@@ -95,27 +93,12 @@ const Login = () => {
             />
             <label htmlFor="remember-me">Remember me</label>
           </div>
-          <button
-            className="sign-in-button"
-            type="submit"
-            disabled={userStatus === "loading"}
-            aria-busy={userStatus === "loading"}
-          >
+          <Button className="sign-in-button" type="submit" disabled={userStatus === "loading"} aria-busy={userStatus === "loading"}>
             Sign In
-          </button>
-          <Link to="/register" aria-label="Register page">
-            No account
-          </Link>
-          {userStatus === "loading" && (
-            <p role="status" aria-live="polite">
-              Loading...
-            </p>
-          )}
-          {userStatus === "failed" && userError && (
-            <p className="error" role="alert">
-              {userError.message || "An error occurred"}
-            </p>
-          )}
+          </Button>
+          <Link to="/register" aria-label="Register page">No account</Link>
+          {userStatus === "loading" && <p role="status" aria-live="polite">Loading...</p>}
+          {userStatus === "failed" && userError && <p className="error" role="alert">{userError.message || "An error occurred"}</p>}
         </form>
       </section>
     </main>

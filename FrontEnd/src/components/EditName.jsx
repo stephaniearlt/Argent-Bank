@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Button from "../components/Button";
 
 const EditName = ({ user, onCancel, onSave }) => {
   // État local pour gérer la modification du nom d'utilisateur
@@ -17,25 +18,37 @@ const EditName = ({ user, onCancel, onSave }) => {
     <div className="edit-name">
       <h2>Edit user info</h2>
       <form onSubmit={handleSaveClick}>
-        <label>
-          User Name:
-          <input
-            type="text"
-            value={newUserName}
-            onChange={(e) => setNewUserName(e.target.value)}
-            placeholder={user.userName}
-          />
-        </label>
-        <label>
-          First Name:
-          <input type="text" value={user.firstName} disabled />
-        </label>
-        <label>
-          Last Name:
-          <input type="text" value={user.lastName} disabled />
-        </label>
-        <button type="submit" className="edit-button">Save</button>
-        <button type="button" className="edit-button" onClick={onCancel}>Cancel</button>
+        <div className="form-group">
+          <label>
+            User Name:
+            <input
+              type="text"
+              value={newUserName}
+              onChange={(e) => setNewUserName(e.target.value)}
+              placeholder={user.userName}
+            />
+          </label>
+        </div>
+        <div className="form-group">
+          <label>
+            First Name:
+            <input type="text" value={user.firstName} disabled />
+          </label>
+        </div>
+        <div className="form-group">
+          <label>
+            Last Name:
+            <input type="text" value={user.lastName} disabled />
+          </label>
+        </div>
+        <div className="button-container">
+          <Button type="submit" className="save-button">
+            Save
+          </Button>
+          <Button type="button" className="cancel-button" onClick={onCancel}>
+            Cancel
+          </Button>
+        </div>
       </form>
     </div>
   );

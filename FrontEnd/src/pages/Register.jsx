@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { registerUser } from "../store/slices/userSlice";
 import { selectUserStatus, selectUserError } from "../selectors/userSelectors";
 import PasswordInput from "../utils/PasswordInput";
+import Button from "../components/Button";
 
 const Register = () => {
   // États locaux pour gérer les champs du formulaire
@@ -94,14 +95,14 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
             />
           </div>
-          <button
+          <Button
             className="sign-in-button"
             type="submit"
             disabled={userStatus === "loading"}
             aria-busy={userStatus === "loading"}
           >
             Register
-          </button>
+          </Button>
           <Link to="/login" aria-label="Login page">
             Account
           </Link>
