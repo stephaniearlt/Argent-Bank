@@ -1,9 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Button from "../components/Button";
 
 const EditName = ({ user, onCancel, onSave }) => {
   // État local pour gérer la modification du nom d'utilisateur
-  const [newUserName, setNewUserName] = useState(user.userName || "");
+  const [newUserName, setNewUserName] = useState("");
+
+  // Effet pour initialiser le nom d'utilisateur à la valeur actuelle du profil
+  useEffect(() => {
+    if (user) {
+      setNewUserName(user.userName || "");
+    }
+  }, [user]);
 
   // Fonction pour gérer le clic sur le bouton de sauvegarde
   const handleSaveClick = (e) => {
@@ -16,7 +23,7 @@ const EditName = ({ user, onCancel, onSave }) => {
 
   return (
     <div className="edit-name">
-      <h2>Edit user info</h2>
+      <h2>Edit User Info</h2>
       <form onSubmit={handleSaveClick}>
         <div className="form-group">
           <label>
@@ -32,13 +39,13 @@ const EditName = ({ user, onCancel, onSave }) => {
         <div className="form-group">
           <label>
             First Name:
-            <input type="text" value={user.firstName} disabled />
+            <input type="text" value={user.firstName || ''} disabled />
           </label>
         </div>
         <div className="form-group">
           <label>
             Last Name:
-            <input type="text" value={user.lastName} disabled />
+            <input type="text" value={user.lastName || ''} disabled />
           </label>
         </div>
         <div className="button-container">

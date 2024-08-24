@@ -1,21 +1,23 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { logout } from "../store/slices/userSlice";
-import { removeToken } from "../utils/tokenManager";
-import { selectUser } from "../selectors/userSelectors";
+import { logout } from "../actions/userActions";
+import { selectUserToken } from "../reducers/userReducer";
+import { selectUserName } from "../reducers/profileReducer";
 import logo from "../assets/argentBankLogo.webp";
 
 const Header = () => {
-  // Hooks pour accéder aux fonctions et store de Redux
+  // Envoi les actions au store
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const user = useSelector(selectUser);
 
-  // Fonction pour gérer la déconnexion de l'utilisateur
+  const navigate = useNavigate();
+
+  // Sélectionne les informations de l'utilisateur depuis le store
+  const token = useSelector(selectUserToken); // Sélectionne le token
+  const userName = useSelector(selectUserName); // Sélectionne le nom d'utilisateur
+
   const handleLogout = () => {
     dispatch(logout());
-    removeToken();
     navigate("/");
   };
 
@@ -30,10 +32,10 @@ const Header = () => {
         <h1 className="sr-only">Argent Bank</h1>
       </Link>
       <div>
-        {user ? (
+        {token ? (
           <>
             <Link className="main-nav-item" to="/profile">
-              <i className="fa fa-user-circle"></i> {user.userName}
+              <i className="fa fa-user-circle"></i> {userName}
             </Link>
             <Link className="main-nav-item" to="/" onClick={handleLogout}>
               <i className="fa fa-sign-out"></i> Sign Out

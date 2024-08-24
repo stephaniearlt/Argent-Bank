@@ -1,43 +1,49 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { registerUser } from "../store/slices/userSlice";
-import { selectUserStatus, selectUserError } from "../selectors/userSelectors";
 import PasswordInput from "../utils/PasswordInput";
 import Button from "../components/Button";
+import { registerUser } from "../actions/profileActions";
+import { selectUserLoading, selectUserError } from "../reducers/userReducer";
 
 const Register = () => {
   // États locaux pour gérer les champs du formulaire
-  const [lastName, setLastName] = useState("");
-  const [firstName, setFirstName] = useState("");
-  const [userName, setUserName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [credentials, setCredentials] = useState({
+    lastName: "",
+    firstName: "",
+    userName: "",
+    email: "",
+    password: "",
+  });
 
   // Hooks pour accéder aux fonctions et store de Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const userStatus = useSelector(selectUserStatus);
-  const userError = useSelector(selectUserError);
+  const loading = useSelector(selectUserLoading);
+  const error = useSelector(selectUserError);
 
-  // Fonction appelée lors de la soumission du formulaire
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Déclenche l'action pour registrer les données du formulaire
-    dispatch(registerUser({ lastName, firstName, userName, email, password }));
+  // Fonction pour gérer le changement des champs du formulaire
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setCredentials((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
-  // Vérifie le statut de l'utilisateur et redirige si l'inscription est réussie
-  useEffect(() => {
-    if (userStatus === "succeeded") {
-      navigate("/login");
-    }
-  }, [userStatus, navigate]);
+  // // Fonction appelée lors de la soumission du formulaire
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // Déclenche l'action d'inscription
+    dispatch(registerUser(credentials));
+    // Redirection après inscription réussie
+    navigate("/login");
+  };
 
   return (
     <main className="main bg-dark">
       <section className="sign-in-content">
-        <i className="fa fa-user-circle sign-in-icon"></i>
+        <i className="fa fa-user-circle sign-in-icon" aria-hidden="true"></i>
         <h1>Register</h1>
         <form onSubmit={handleSubmit}>
           <div className="input-wrapper">
@@ -45,10 +51,11 @@ const Register = () => {
             <input
               type="text"
               id="lastname"
-              value={lastName}
-              onChange={(e) => setLastName(e.target.value)}
+              name="lastName"
+              value={credentials.lastName}
+              onChange={handleChange}
               required
-              ria-label="Lastname"
+              aria-label="Lastname"
               placeholder="Angel"
             />
           </div>
@@ -57,8 +64,9 @@ const Register = () => {
             <input
               type="text"
               id="firstname"
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
+              name="firstName"
+              value={credentials.firstName}
+              onChange={handleChange}
               required
               aria-label="Firstname"
               placeholder="Cooper"
@@ -69,8 +77,9 @@ const Register = () => {
             <input
               type="text"
               id="username"
-              value={userName}
-              onChange={(e) => setUserName(e.target.value)}
+              name="userName"
+              value={credentials.userName}
+              onChange={handleChange}
               required
               aria-label="Username"
               placeholder="Angel"
@@ -81,8 +90,9 @@ const Register = () => {
             <input
               type="email"
               id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              name="email"
+              value={credentials.email}
+              onChange={handleChange}
               required
               aria-label="Email address"
               placeholder="example@gmail.com"
@@ -91,29 +101,30 @@ const Register = () => {
           <div className="input-wrapper">
             <label htmlFor="password">Password</label>
             <PasswordInput
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              name="password"
+              value={credentials.password}
+              onChange={handleChange}
             />
           </div>
           <Button
             className="sign-in-button"
             type="submit"
-            disabled={userStatus === "loading"}
-            aria-busy={userStatus === "loading"}
+            disabled={loading}
+            aria-busy={loading}
           >
             Register
           </Button>
           <Link to="/login" aria-label="Login page">
             Account
           </Link>
-          {userStatus === "loading" && (
+          {loading && (
             <p role="status" aria-live="polite">
               Loading...
             </p>
           )}
-          {userStatus === "failed" && userError && (
+          {error && (
             <p className="error" role="alert">
-              {userError.message || "An error occurred"}
+              {error.message || "An error occurred"}
             </p>
           )}
         </form>
