@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../actions/userActions";
+import { login } from "../features/user/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../utils/PasswordInput";
 import Button from "../components/Button";
@@ -8,7 +8,7 @@ import {
   selectUserToken,
   selectUserLoading,
   selectUserError,
-} from "../reducers/userReducer";
+} from "../features/user/userSlice";
 
 const Login = () => {
   // États locaux pour gérer les champs du formulaire
@@ -24,23 +24,38 @@ const Login = () => {
   const loading = useSelector(selectUserLoading);
   const error = useSelector(selectUserError);
 
-  // Hook lorsque le composant est monté ou lorsque la valeur de `token` ou `navigate` change
+  // Hook lorsque le composant est monté ou lorsque la valeur de token ou navigate change
   useEffect(() => {
     if (token) {
       navigate("/profile");
     }
   }, [token, navigate]);
 
-// Fonction qui gère la soumission du formulaire
+  // Fonction qui gère la soumission du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    // Validation des champs du formulaire
+    if (!credentials.email || !credentials.password) {
+      // Affiche un message d'erreur pour les champs manquants
+      alert("Please fill in both email and password.");
+      return;
+    }
+
     if (rememberMe) {
       localStorage.setItem("rememberMe", "true");
     } else {
       localStorage.removeItem("rememberMe");
     }
+
     dispatch(login({ ...credentials, rememberMe }));
   };
+
+  useEffect(() => {
+    if (error) {
+      alert(error); // Affiche l'erreur si elle existe
+    }
+  }, [error]);
 
   return (
     <main className="main bg-dark">
@@ -93,16 +108,11 @@ const Login = () => {
             Sign In
           </Button>
           <Link to="/register" aria-label="Go to registration page">
-            No account ? Register here
+            No account? Register here
           </Link>
           {loading && (
             <p role="status" aria-live="assertive">
               Loading...
-            </p>
-          )}
-          {error && (
-            <p className="error" role="alert">
-              {error}
             </p>
           )}
         </form>

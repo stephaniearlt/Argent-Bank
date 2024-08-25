@@ -5,12 +5,12 @@ import EditName from "../components/EditName";
 import Account from "../components/Account";
 import Button from "../components/Button";
 import data from "../datas/data.json";
-import { fetchProfile, updateProfileData } from "../actions/profileActions";
+import { fetchProfile, updateProfileData } from "../features/profile/profileSlice"; 
 import {
   selectProfile,
   selectProfileLoading,
   selectProfileError,
-} from "../reducers/profileReducer";
+} from "../features/profile/profileSlice"; 
 
 // Hook pour gérer l'authentification et la récupération du profil
 const useAuth = (navigate, dispatch) => {
@@ -21,7 +21,7 @@ const useAuth = (navigate, dispatch) => {
     if (!token) {
       navigate("/login");
     } else {
-      dispatch(fetchProfile()); 
+      dispatch(fetchProfile());
     }
 
     // Nettoyage du token lors du déchargement

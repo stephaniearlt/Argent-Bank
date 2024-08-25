@@ -1,10 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../utils/PasswordInput";
 import Button from "../components/Button";
-import { registerUser } from "../actions/profileActions";
-import { selectUserLoading, selectUserError } from "../reducers/userReducer";
+import {
+  registerUser,
+  selectProfileLoading,
+  selectProfileError,
+  selectProfileSuccess
+} from "../features/profile/profileSlice";
 
 const Register = () => {
   // États locaux pour gérer les champs du formulaire
@@ -19,8 +23,9 @@ const Register = () => {
   // Hooks pour accéder aux fonctions et store de Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const loading = useSelector(selectUserLoading);
-  const error = useSelector(selectUserError);
+  const loading = useSelector(selectProfileLoading);
+  const error = useSelector(selectProfileError);
+  const success = useSelector(selectProfileSuccess);
 
   // Fonction pour gérer le changement des champs du formulaire
   const handleChange = (e) => {
@@ -31,14 +36,31 @@ const Register = () => {
     }));
   };
 
-  // // Fonction appelée lors de la soumission du formulaire
+  // Fonction appelée lors de la soumission du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!credentials.password) {
+      alert("Password is required");
+      return;
+    }
+
     // Déclenche l'action d'inscription
     dispatch(registerUser(credentials));
-    // Redirection après inscription réussie
-    navigate("/login");
   };
+
+  // Utiliser useEffect pour gérer les erreurs et succès
+  useEffect(() => {
+    if (success) {
+      // Redirection après succès
+      navigate("/login");
+    }
+  }, [success, navigate]);
+
+  useEffect(() => {
+    if (error) {
+      alert(error); // Affiche l'erreur si elle existe
+    }
+  }, [error]);
 
   return (
     <main className="main bg-dark">
@@ -46,58 +68,23 @@ const Register = () => {
         <i className="fa fa-user-circle sign-in-icon" aria-hidden="true"></i>
         <h1>Register</h1>
         <form onSubmit={handleSubmit}>
-          <div className="input-wrapper">
-            <label htmlFor="lastname">Lastname</label>
-            <input
-              type="text"
-              id="lastname"
-              name="lastName"
-              value={credentials.lastName}
-              onChange={handleChange}
-              required
-              aria-label="Lastname"
-              placeholder="Angel"
-            />
-          </div>
-          <div className="input-wrapper">
-            <label htmlFor="firstname">Firstname</label>
-            <input
-              type="text"
-              id="firstname"
-              name="firstName"
-              value={credentials.firstName}
-              onChange={handleChange}
-              required
-              aria-label="Firstname"
-              placeholder="Cooper"
-            />
-          </div>
-          <div className="input-wrapper">
-            <label htmlFor="username">Username</label>
-            <input
-              type="text"
-              id="username"
-              name="userName"
-              value={credentials.userName}
-              onChange={handleChange}
-              required
-              aria-label="Username"
-              placeholder="Angel"
-            />
-          </div>
-          <div className="input-wrapper">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={credentials.email}
-              onChange={handleChange}
-              required
-              aria-label="Email address"
-              placeholder="example@gmail.com"
-            />
-          </div>
+          {["lastName", "firstName", "userName", "email"].map((field) => (
+            <div className="input-wrapper" key={field}>
+              <label htmlFor={field}>
+                {field.charAt(0).toUpperCase() + field.slice(1)}
+              </label>
+              <input
+                type={field === "email" ? "email" : "text"}
+                id={field}
+                name={field}
+                value={credentials[field]}
+                onChange={handleChange}
+                required
+                aria-label={field}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+              />
+            </div>
+          ))}
           <div className="input-wrapper">
             <label htmlFor="password">Password</label>
             <PasswordInput
@@ -115,16 +102,11 @@ const Register = () => {
             Register
           </Button>
           <Link to="/login" aria-label="Login page">
-            Account
+            Already have an account? Log in
           </Link>
           {loading && (
             <p role="status" aria-live="polite">
               Loading...
-            </p>
-          )}
-          {error && (
-            <p className="error" role="alert">
-              {error.message || "An error occurred"}
             </p>
           )}
         </form>

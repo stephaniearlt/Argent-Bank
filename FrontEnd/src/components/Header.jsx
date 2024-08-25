@@ -1,15 +1,14 @@
 import React from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useNavigate } from "react-router-dom";
-import { logout } from "../actions/userActions";
-import { selectUserToken } from "../reducers/userReducer";
-import { selectUserName } from "../reducers/profileReducer";
+import { logoutUser } from "../features/user/userSlice"; 
+import { selectUserToken } from "../features/user/userSlice"; 
+import { selectUserName } from "../features/profile/profileSlice"; 
 import logo from "../assets/argentBankLogo.webp";
 
 const Header = () => {
   // Envoi les actions au store
   const dispatch = useDispatch();
-
   const navigate = useNavigate();
 
   // Sélectionne les informations de l'utilisateur depuis le store
@@ -17,7 +16,7 @@ const Header = () => {
   const userName = useSelector(selectUserName); // Sélectionne le nom d'utilisateur
 
   const handleLogout = () => {
-    dispatch(logout());
+    dispatch(logoutUser()); // Utilise l'action du slice userSlice
     navigate("/");
   };
 
