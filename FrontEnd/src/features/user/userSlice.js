@@ -3,7 +3,7 @@ import axios from "axios";
 
 // State initial
 const initialState = {
-  token: null,
+  token: localStorage.getItem("token") || null,
   loading: false,
   error: null,
 };
@@ -15,10 +15,8 @@ const userSlice = createSlice({
   // Reducers pour les actions synchrones
   reducers: {
     // Action pour déconnecter l'utilisateur
-    logout(state) {
-      state.token = null;
-      state.loading = false;
-      state.error = null;
+    logout() {
+      return initialState;
     },
   },
   // ExtraReducers pour les actions asynchrones
@@ -32,6 +30,7 @@ const userSlice = createSlice({
         state.loading = false;
         state.token = payload;
         state.error = null;
+        localStorage.setItem("token", payload); // Enregistre le token dans le localStorage
       })
       .addCase(login.rejected, (state, { payload }) => {
         state.loading = false;
@@ -69,7 +68,6 @@ export const login = createAsyncThunk(
         },
       } = await apiClient.post("/user/login", credentials);
       if (token) {
-        localStorage.setItem("token", token);
         return token;
       } else {
         return rejectWithValue("No token received");

@@ -5,39 +5,45 @@ import EditName from "../components/EditName";
 import Account from "../components/Account";
 import Button from "../components/Button";
 import data from "../datas/data.json";
-import { fetchProfile, updateProfileData } from "../features/profile/profileSlice"; 
+import {
+  fetchProfile,
+  updateProfileData,
+} from "../features/profile/profileSlice";
 import {
   selectProfile,
   selectProfileLoading,
   selectProfileError,
-} from "../features/profile/profileSlice"; 
+} from "../features/profile/profileSlice";
 
-// Hook pour gérer l'authentification et la récupération du profil
+// Authentification et récupération du profil
 const useAuth = (navigate, dispatch) => {
   useEffect(() => {
     const token = localStorage.getItem("token");
-
-    // Si token n'est pas présent, redirige vers /login
+    // Si token absent, redirection /login
     if (!token) {
       navigate("/login");
     } else {
       dispatch(fetchProfile());
     }
-
-    // Nettoyage du token lors du déchargement
+    // Nettoyage si rafraichissement de la page
     const handleBeforeUnload = () => localStorage.removeItem("token");
     window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
   }, [navigate, dispatch]);
 };
 
 const Profile = () => {
-  const [isEditing, setIsEditing] = useState(false); // Gestion du mode d'édition
+  const [isEditing, setIsEditing] = useState(false);
+  // Envoi des actions au store Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const profile = useSelector(selectProfile); // Sélection du profil complet depuis le store
-  const loading = useSelector(selectProfileLoading); // Sélection de l'état de chargement
-  const error = useSelector(selectProfileError); // Sélection des erreurs éventuelles
+
+  // Sélection des données depuis le store Redux
+  const profile = useSelector(selectProfile);
+  const loading = useSelector(selectProfileLoading);
+  const error = useSelector(selectProfileError);
 
   // Utilisation du hook d'authentification
   useAuth(navigate, dispatch);
@@ -53,7 +59,7 @@ const Profile = () => {
     dispatch(updateProfileData(newUserName)).finally(() => setIsEditing(false));
   };
 
-  // Gestion du rendu en fonction de l'état de chargement et des erreurs
+  // Gestion des états de chargement et des erreurs
   if (loading) return <p>Loading...</p>;
   if (error) return <p className="error-message">{error}</p>;
 
@@ -71,7 +77,13 @@ const Profile = () => {
             <h1>
               Welcome back
               <br />
-              {profile?.userName ? <>{profile.userName}!</> : "User!"}
+              {profile?.firstName ? (
+                <>
+                  {profile.firstName} {profile.lastName} !
+                </>
+              ) : (
+                "User!"
+              )}
             </h1>
             <Button className="edit-button" onClick={handleEditClick}>
               Edit Name

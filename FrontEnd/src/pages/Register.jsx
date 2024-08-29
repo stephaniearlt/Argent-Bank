@@ -7,7 +7,7 @@ import {
   registerUser,
   selectProfileLoading,
   selectProfileError,
-  selectProfileSuccess
+  selectProfileSuccess,
 } from "../features/profile/profileSlice";
 
 const Register = () => {
@@ -48,7 +48,7 @@ const Register = () => {
     dispatch(registerUser(credentials));
   };
 
-  // Utiliser useEffect pour gérer les erreurs et succès
+  // Utilise useEffect pour gérer les erreurs et succès
   useEffect(() => {
     if (success) {
       // Redirection après succès
@@ -61,6 +61,14 @@ const Register = () => {
       alert(error); // Affiche l'erreur si elle existe
     }
   }, [error]);
+
+  // Définition des placeholders pour chaque champ
+  const placeholders = {
+    lastName: "Cooper",
+    firstName: "Angel",
+    userName: "angelcooper",
+    email: "example@gmail.com",
+  };
 
   return (
     <main className="main bg-dark">
@@ -81,7 +89,10 @@ const Register = () => {
                 onChange={handleChange}
                 required
                 aria-label={field}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                placeholder={
+                  placeholders[field] ||
+                  field.charAt(0).toUpperCase() + field.slice(1)
+                }
               />
             </div>
           ))}

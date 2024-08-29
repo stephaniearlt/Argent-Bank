@@ -4,56 +4,53 @@ import { login } from "../features/user/userSlice";
 import { Link, useNavigate } from "react-router-dom";
 import PasswordInput from "../utils/PasswordInput";
 import Button from "../components/Button";
-import {
-  selectUserToken,
-  selectUserLoading,
-  selectUserError,
-} from "../features/user/userSlice";
+import { selectUserToken, selectUserLoading, selectUserError } from "../features/user/userSlice";
+import { getStorageData, setStorageData } from "../utils/TimeStorage";
 
 const Login = () => {
-  // États locaux pour gérer les champs du formulaire
   const [credentials, setCredentials] = useState({ email: "", password: "" });
-  const [rememberMe, setRememberMe] = useState(
-    () => localStorage.getItem("rememberMe") === "true"
-  );
+  const [rememberMe, setRememberMe] = useState(false);
 
-  // Hooks pour accéder aux fonctions et store de Redux
+  // Envoi des actions au store Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // Sélection des données depuis le store Redux
   const token = useSelector(selectUserToken);
   const loading = useSelector(selectUserLoading);
   const error = useSelector(selectUserError);
 
-  // Hook lorsque le composant est monté ou lorsque la valeur de token ou navigate change
+  // Redirection basée sur le token de Redux
   useEffect(() => {
     if (token) {
       navigate("/profile");
+    } else {
+      // Récupération des informations depuis le stockage
+      const savedEmail = getStorageData("email");
+      const savedPassword = getStorageData("password");
+      if (savedEmail && savedPassword) {
+        setCredentials({ email: savedEmail, password: savedPassword });
+        setRememberMe(true); // Coche automatiquement la case si les données sont présentes
+      }
     }
   }, [token, navigate]);
 
-  // Fonction qui gère la soumission du formulaire
+  // Gestion de la soumission du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // Validation des champs du formulaire
-    if (!credentials.email || !credentials.password) {
-      // Affiche un message d'erreur pour les champs manquants
-      alert("Please fill in both email and password.");
-      return;
-    }
-
     if (rememberMe) {
-      localStorage.setItem("rememberMe", "true");
+      setStorageData("email", credentials.email);
+      setStorageData("password", credentials.password);
     } else {
-      localStorage.removeItem("rememberMe");
+      localStorage.removeItem("email");
+      localStorage.removeItem("password");
     }
-
-    dispatch(login({ ...credentials, rememberMe }));
+    dispatch(login(credentials));
   };
 
   useEffect(() => {
     if (error) {
-      alert(error); // Affiche l'erreur si elle existe
+      alert(error);
     }
   }, [error]);
 
@@ -94,7 +91,7 @@ const Login = () => {
               type="checkbox"
               id="remember-me"
               checked={rememberMe}
-              onChange={() => setRememberMe(!rememberMe)}
+              onChange={() => setRememberMe((prev) => !prev)}
               aria-label="Remember me option"
             />
             <label htmlFor="remember-me">Remember me</label>
