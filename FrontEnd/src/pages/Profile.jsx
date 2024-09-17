@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import EditName from "../components/EditName";
 import Account from "../components/Account";
 import Button from "../components/Button";
@@ -8,60 +7,37 @@ import data from "../datas/data.json";
 import {
   fetchProfile,
   updateProfileData,
-} from "../features/profile/profileSlice";
-import {
   selectProfile,
-  selectProfileLoading,
+  selectProfileStatus,
   selectProfileError,
 } from "../features/profile/profileSlice";
-
-// Authentification et récupération du profil
-const useAuth = (navigate, dispatch) => {
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    // Si token absent, redirection /login
-    if (!token) {
-      navigate("/login");
-    } else {
-      dispatch(fetchProfile());
-    }
-    // Nettoyage si rafraichissement de la page
-    const handleBeforeUnload = () => localStorage.removeItem("token");
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => {
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [navigate, dispatch]);
-};
+import { selectUserToken } from "../features/user/userSlice";
 
 const Profile = () => {
-  const [isEditing, setIsEditing] = useState(false);
-  // Envoi des actions au store Redux
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  // Sélection des données depuis le store Redux
   const profile = useSelector(selectProfile);
-  const loading = useSelector(selectProfileLoading);
+  const status = useSelector(selectProfileStatus);
   const error = useSelector(selectProfileError);
+  const token = useSelector(selectUserToken);
 
-  // Utilisation du hook d'authentification
-  useAuth(navigate, dispatch);
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Fonction pour activer le mode édition
-  const handleEditClick = () => setIsEditing(true);
+  useEffect(() => {
+    if (token) {
+      dispatch(fetchProfile());
+    }
+  }, [dispatch, token]);
 
-  // Fonction pour annuler le mode édition
-  const handleCancel = () => setIsEditing(false);
-
-  // Fonction pour sauvegarder les modifications de l'utilisateur
   const handleSave = (newUserName) => {
-    dispatch(updateProfileData(newUserName)).finally(() => setIsEditing(false));
+    if (token) {
+      dispatch(updateProfileData({ userName: newUserName })).finally(() =>
+        setIsEditing(false)
+      );
+    }
   };
 
-  // Gestion des états de chargement et des erreurs
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p className="error-message">{error}</p>;
+  if (status === "loading") return <p>Loading...</p>;
+  if (status === "failed") return <p className="error-message">{error}</p>;
 
   return (
     <main className="main bg-dark">
@@ -69,7 +45,7 @@ const Profile = () => {
         {isEditing ? (
           <EditName
             user={profile}
-            onCancel={handleCancel}
+            onCancel={() => setIsEditing(false)}
             onSave={handleSave}
           />
         ) : (
@@ -79,13 +55,13 @@ const Profile = () => {
               <br />
               {profile?.firstName ? (
                 <>
-                  {profile.firstName} {profile.lastName} !
+                  {profile.firstName} {profile.lastName}!
                 </>
               ) : (
                 "User!"
               )}
             </h1>
-            <Button className="edit-button" onClick={handleEditClick}>
+            <Button className="edit-button" onClick={() => setIsEditing(true)}>
               Edit Name
             </Button>
           </>

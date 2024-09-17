@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// Configuration de l'instance d'axios
+// Gestion des requêtes HTTP
 const apiClient = axios.create({
   baseURL: "http://localhost:3001/api/v1",
   headers: {
@@ -9,99 +9,118 @@ const apiClient = axios.create({
   },
 });
 
-// State initial
-const initialState = {
-  profile: null,
-  loading: false,
-  error: null,
-  success: false,
-};
+// Appel à l'API pour obtenir les données du profil
+export const fetchProfile = createAsyncThunk(
+  "profile/fetchProfile",
+  async (_, { getState, rejectWithValue }) => {
+    const token = getState().user.token;
+    try {
+      const response = await apiClient.post(
+        "/user/profile",
+        {},
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.body;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "An unexpected error occurred."
+      );
+    }
+  }
+);
 
-// Actions pour gérer les états de chargement
-// En attente
-const handlePending = (state) => {
-  state.loading = true;
-  state.error = null;
-  state.success = false;
-};
-// En réussie
-const handleFulfilled = (state, { payload }) => {
-  state.loading = false;
-  state.profile = payload;
-  state.error = null;
-  state.success = true;
-};
-// En échec
-const handleRejected = (state, { payload }) => {
-  state.loading = false;
-  state.error = payload;
-  state.success = false;
-};
+// Appel à l'API pour mettre à jour les données du profil
+export const updateProfileData = createAsyncThunk(
+  "profile/updateProfileData",
+  async ({ userName }, { getState, rejectWithValue }) => {
+    const token = getState().user.token;
+    try {
+      const response = await apiClient.put(
+        "/user/profile",
+        { userName },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      return response.data.body;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "An unexpected error occurred."
+      );
+    }
+  }
+);
 
-// Création du slice
+// Appel à l'API pour enregistrer un nouvel utilisateur
+export const registerUser = createAsyncThunk(
+  "profile/registerUser",
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await apiClient.post("/user/signup", credentials);
+      return response.data.body;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "An unexpected error occurred."
+      );
+    }
+  }
+);
+
+// Logique de mise à jour du state global
 const profileSlice = createSlice({
   name: "profile",
-  initialState,
+  initialState: {
+    profile: null,
+    status: "idle",
+    error: null,
+  },
   extraReducers: (builder) => {
     builder
-      .addCase(fetchProfile.pending, handlePending)
-      .addCase(fetchProfile.fulfilled, handleFulfilled)
-      .addCase(fetchProfile.rejected, handleRejected)
-      .addCase(updateProfileData.pending, handlePending)
-      .addCase(updateProfileData.fulfilled, handleFulfilled)
-      .addCase(updateProfileData.rejected, handleRejected)
-      .addCase(registerUser.pending, handlePending)
-      .addCase(registerUser.fulfilled, handleFulfilled)
-      .addCase(registerUser.rejected, handleRejected);
+      .addCase(fetchProfile.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(fetchProfile.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.profile = action.payload;
+      })
+      .addCase(fetchProfile.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+      .addCase(updateProfileData.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(updateProfileData.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.profile = action.payload;
+      })
+      .addCase(updateProfileData.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.status = "loading";
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.profile = action.payload;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload;
+      });
   },
 });
 
-// Export des selectors et du reducer
+// Sélecteurs pour récupérer des morceaux spécifiques du state
 export const selectProfile = (state) => state.profile.profile;
 export const selectUserName = (state) => state.profile.profile?.userName;
-export const selectProfileLoading = (state) => state.profile.loading;
+export const selectProfileStatus = (state) => state.profile.status;
 export const selectProfileError = (state) => state.profile.error;
-export const selectProfileSuccess = (state) => state.profile.success;
 
 export default profileSlice.reducer;
-
-// Thunks asynchrones pour communiquer avec l'API
-const getAuthHeaders = () => ({
-  headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-});
-
-export const fetchProfile = createAsyncThunk(
-  "profile/fetchProfile",
-  async (_, { rejectWithValue }) => {
-    try {
-      const { data: { body } } = await apiClient.post("/user/profile", {}, getAuthHeaders());
-      return body;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "An unexpected error occurred.");
-    }
-  }
-);
-
-export const updateProfileData = createAsyncThunk(
-  "profile/updateProfileData",
-  async (userName, { rejectWithValue }) => {
-    try {
-      const { data: { body } } = await apiClient.put("/user/profile", { userName }, getAuthHeaders());
-      return body;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "An unexpected error occurred.");
-    }
-  }
-);
-
-export const registerUser = createAsyncThunk(
-  "profile/registerUser",
-  async (body, { rejectWithValue }) => {
-    try {
-      const { data: { body: userData } } = await apiClient.post("/user/signup", body);
-      return userData;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || "An unexpected error occurred.");
-    }
-  }
-);

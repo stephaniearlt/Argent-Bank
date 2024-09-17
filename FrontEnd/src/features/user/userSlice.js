@@ -1,55 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-// State initial
-const initialState = {
-  token: localStorage.getItem("token") || null,
-  loading: false,
-  error: null,
-};
-
-// Création du slice
-const userSlice = createSlice({
-  name: "user",
-  initialState,
-  // Reducers pour les actions synchrones
-  reducers: {
-    // Action pour déconnecter l'utilisateur
-    logout() {
-      return initialState;
-    },
-  },
-  // ExtraReducers pour les actions asynchrones
-  extraReducers: (builder) => {
-    builder
-      .addCase(login.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(login.fulfilled, (state, { payload }) => {
-        state.loading = false;
-        state.token = payload;
-        state.error = null;
-        localStorage.setItem("token", payload); // Enregistre le token dans le localStorage
-      })
-      .addCase(login.rejected, (state, { payload }) => {
-        state.loading = false;
-        state.error = payload;
-      });
-  },
-});
-
-// Export des actions synchrones
-export const { logout } = userSlice.actions;
-
-// Export des selectors et du reducer
-export const selectUserToken = (state) => state.user.token;
-export const selectUserLoading = (state) => state.user.loading;
-export const selectUserError = (state) => state.user.error;
-
-export default userSlice.reducer;
-
-// Configuration de l'instance d'axios
+// Gestion des requêtes HTTP
 const apiClient = axios.create({
   baseURL: "http://localhost:3001/api/v1",
   headers: {
@@ -57,34 +9,57 @@ const apiClient = axios.create({
   },
 });
 
-// Thunk asynchrone pour gérer la connexion de l'utilisateur
+// Appel à l'API pour connexion
 export const login = createAsyncThunk(
   "user/login",
-  async (credentials, { rejectWithValue }) => {
-    try {
-      const {
-        data: {
-          body: { token },
-        },
-      } = await apiClient.post("/user/login", credentials);
-      if (token) {
-        return token;
-      } else {
-        return rejectWithValue("No token received");
-      }
-    } catch ({ response }) {
-      const errorMessage =
-        response?.data?.message || "Invalid email or password";
-      return rejectWithValue(errorMessage);
+  async ({ credentials, rememberMe }) => {
+    const response = await apiClient.post("/user/login", credentials);
+    if (response.data.body && response.data.body.token) {
+      return { token: response.data.body.token, rememberMe };
+    } else {
+      throw new Error("Invalid response format");
     }
   }
 );
 
-// Thunk synchrone pour gérer la déconnexion de l'utilisateur
-export const logoutUser = createAsyncThunk(
-  "user/logoutUser",
-  async (_, { dispatch }) => {
-    localStorage.removeItem("token");
-    dispatch(logout());
-  }
-);
+// Logique de mise à jour du state global pour la gestion du token et des statuts de connexion
+const userSlice = createSlice({
+  name: "user",
+  initialState: {
+    token: localStorage.getItem('token') || null, 
+    status: "idle",
+    error: null,
+  },
+  reducers: {
+    logout: (state) => {
+      state.token = null;
+      localStorage.removeItem('token');
+    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(login.pending, (state) => {
+        state.status = "loading";
+      })
+      // Si la requête réussie, le token est stocké dans le state et dans localStorage si "Remember Me" est coché
+      .addCase(login.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.token = action.payload.token;
+        if (action.payload.rememberMe) {
+          localStorage.setItem('token', action.payload.token);
+        }
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      });
+  },
+});
+
+export const { logout } = userSlice.actions;
+export default userSlice.reducer;
+
+// Sélecteurs pour récupérer des morceaux spécifiques du state
+export const selectUserToken = (state) => state.user.token;
+export const selectLoginStatus = (state) => state.user.status;
+export const selectLoginError = (state) => state.user.error;

@@ -1,58 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "../features/user/userSlice";
-import { Link, useNavigate } from "react-router-dom";
-import PasswordInput from "../utils/PasswordInput";
+import { Link } from "react-router-dom";
+import {
+  selectLoginStatus,
+  selectLoginError,
+} from "../features/user/userSlice";
 import Button from "../components/Button";
-import { selectUserToken, selectUserLoading, selectUserError } from "../features/user/userSlice";
-import { getStorageData, setStorageData } from "../utils/TimeStorage";
+import PasswordInput from "../utils/PasswordInput";
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const status = useSelector(selectLoginStatus);
+  const error = useSelector(selectLoginError);
+
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
 
-  // Envoi des actions au store Redux
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  // Sélection des données depuis le store Redux
-  const token = useSelector(selectUserToken);
-  const loading = useSelector(selectUserLoading);
-  const error = useSelector(selectUserError);
-
-  // Redirection basée sur le token de Redux
-  useEffect(() => {
-    if (token) {
-      navigate("/profile");
-    } else {
-      // Récupération des informations depuis le stockage
-      const savedEmail = getStorageData("email");
-      const savedPassword = getStorageData("password");
-      if (savedEmail && savedPassword) {
-        setCredentials({ email: savedEmail, password: savedPassword });
-        setRememberMe(true); // Coche automatiquement la case si les données sont présentes
-      }
-    }
-  }, [token, navigate]);
-
-  // Gestion de la soumission du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (rememberMe) {
-      setStorageData("email", credentials.email);
-      setStorageData("password", credentials.password);
-    } else {
-      localStorage.removeItem("email");
-      localStorage.removeItem("password");
-    }
-    dispatch(login(credentials));
+    dispatch(login({ credentials, rememberMe }));
   };
-
-  useEffect(() => {
-    if (error) {
-      alert(error);
-    }
-  }, [error]);
 
   return (
     <main className="main bg-dark">
@@ -99,19 +67,20 @@ const Login = () => {
           <Button
             className="sign-in-button"
             type="submit"
-            disabled={loading}
-            aria-busy={loading}
+            disabled={status === "loading"}
+            aria-busy={status === "loading"}
           >
             Sign In
           </Button>
           <Link to="/register" aria-label="Go to registration page">
             No account? Register here
           </Link>
-          {loading && (
+          {status === "loading" && (
             <p role="status" aria-live="assertive">
               Loading...
             </p>
           )}
+          {error && <p className="error-message">{error}</p>}
         </form>
       </section>
     </main>

@@ -5,13 +5,11 @@ import PasswordInput from "../utils/PasswordInput";
 import Button from "../components/Button";
 import {
   registerUser,
-  selectProfileLoading,
   selectProfileError,
-  selectProfileSuccess,
-} from "../features/profile/profileSlice";
+  selectProfileStatus,
+} from "../features/profile/profileSlice"; 
 
 const Register = () => {
-  // États locaux pour gérer les champs du formulaire
   const [credentials, setCredentials] = useState({
     lastName: "",
     firstName: "",
@@ -20,14 +18,11 @@ const Register = () => {
     password: "",
   });
 
-  // Hooks pour accéder aux fonctions et store de Redux
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const loading = useSelector(selectProfileLoading);
   const error = useSelector(selectProfileError);
-  const success = useSelector(selectProfileSuccess);
+  const status = useSelector(selectProfileStatus);
 
-  // Fonction pour gérer le changement des champs du formulaire
   const handleChange = (e) => {
     const { name, value } = e.target;
     setCredentials((prev) => ({
@@ -36,33 +31,27 @@ const Register = () => {
     }));
   };
 
-  // Fonction appelée lors de la soumission du formulaire
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!credentials.password) {
       alert("Password is required");
       return;
     }
-
-    // Déclenche l'action d'inscription
     dispatch(registerUser(credentials));
   };
 
-  // Utilise useEffect pour gérer les erreurs et succès
   useEffect(() => {
-    if (success) {
-      // Redirection après succès
-      navigate("/login");
+    if (status === "succeeded") {
+      navigate("/login"); 
     }
-  }, [success, navigate]);
+  }, [status, navigate]);
 
   useEffect(() => {
     if (error) {
-      alert(error); // Affiche l'erreur si elle existe
+      alert(error); 
     }
   }, [error]);
 
-  // Définition des placeholders pour chaque champ
   const placeholders = {
     lastName: "Cooper",
     firstName: "Angel",
@@ -107,15 +96,15 @@ const Register = () => {
           <Button
             className="sign-in-button"
             type="submit"
-            disabled={loading}
-            aria-busy={loading}
+            disabled={status === "loading"}
+            aria-busy={status === "loading"}
           >
             Register
           </Button>
           <Link to="/login" aria-label="Login page">
             Already have an account? Log in
           </Link>
-          {loading && (
+          {status === "loading" && (
             <p role="status" aria-live="polite">
               Loading...
             </p>
